@@ -1,8 +1,9 @@
 #import "FlutterVpnPlugin.h"
 #import <SangforSDK/SFMobileSecuritySDK.h>
-@interface FlutterVpnPlugin()<SFAuthResultDelegate>
+//@interface FlutterVpnPlugin()<SFAuthResultDelegate>
+//@property (readwrite,copy,nonatomic) FlutterResult __result;
 
-@end
+//@end
 
 @implementation FlutterVpnPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -24,19 +25,22 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
+    if(!self.__result){
+        self.__result = result;
+                           }
   if ([@"getPlatformVersion" isEqualToString:call.method]) {
     result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
   } else if([@"initSDK" isEqualToString:call.method]){
-
+  result(YES);
   }else if([@"startPrimaryAuth" isEqualToString:call.method]){
     NSString * vpn_server_url = call.arguments[@"vpn_path_key"];
     NSString * token_str = call.arguments[@"token_key"];
-    NSLog(@"startPrimaryAuth ===",vpn_server_url)
-      NSLog(@"startPrimaryAuth ===",token_str)
+    NSLog(@"startPrimaryAuth ===",vpn_server_url);
+      NSLog(@"startPrimaryAuth ===",token_str);
     [[SFMobileSecuritySDK sharedInstance] startPasswordAuth:vpn_server_url userName:token_str password:@""];
    }else if([@"vpnLogout" isEqualToString:call.method]){
     [[SFMobileSecuritySDK sharedInstance] cancelAuth];
-    result([BOOL]true)
+    result(YES);
      }else {
     result(FlutterMethodNotImplemented);
   }
@@ -47,7 +51,8 @@
          */
         - (void)onAuthSuccess:(BaseMessage *)msg
         {
-             NSLog(@"AuthViewController onLoginSuccess");
+            self.__result(YES);
+            NSLog(@"AuthViewController onLoginSuccess");
         }
 
         #pragma mark - SFAuthResultDelegate
@@ -58,6 +63,7 @@
          */
         - (void)onAuthFailed:(BaseMessage *)msg
         {
+            self.__result(NO);
             NSLog(@"AuthViewController onLoginFailed:%@", msg);
         }
 
